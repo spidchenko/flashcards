@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import d.spidchenko.flashcards.R;
 
@@ -32,8 +34,20 @@ public class MainFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        TextView tvWord = (TextView)requireActivity().findViewById(R.id.tvCurrentWord);
+
         mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
-        // TODO: Use the ViewModel
+        mViewModel.getCurrentTranslation().observe(getViewLifecycleOwner(), tvWord::setText);
+
+        tvWord.setOnClickListener(v -> {
+            mViewModel.translateToRussian();
+        });
+
+        Button btnShow = (Button)requireActivity().findViewById(R.id.btnShow);
+        btnShow.setOnClickListener(v -> {
+            mViewModel.nextWord();
+        });
     }
 
 }
