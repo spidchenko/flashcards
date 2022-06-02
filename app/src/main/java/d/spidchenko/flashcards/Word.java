@@ -9,6 +9,7 @@ public class Word {
     public enum State {ORIGINAL, TRANSLATED}
 
     private static final String TAG = "Word.LOG_TAG";
+    private int id;
     private int mMemoryRate;
     private final String mRuWord;
     private final String mPlWord;
@@ -18,10 +19,11 @@ public class Word {
         this.mPlWord = mPlWord;
     }
 
-    public Word(int mMemoryRate, String mRuWord, String mPlWord){
+    public Word(int id, int mMemoryRate, String mRuWord, String mPlWord){
         this(mRuWord, mPlWord);
         this.mMemoryRate = mMemoryRate;
-        Log.d(TAG, "Word: " + this);
+        this.id = id;
+//        Log.d(TAG, "Word: " + this);
     }
 
     public String getRuWord() {
@@ -34,6 +36,14 @@ public class Word {
 
     public int getMemoryRate() {
         return mMemoryRate;
+    }
+
+    public void setMemoryRate(int mMemoryRate) {
+        this.mMemoryRate = mMemoryRate;
+    }
+
+    public int getId() {
+        return id;
     }
 
     @NonNull
