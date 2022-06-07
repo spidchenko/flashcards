@@ -27,16 +27,23 @@ public class MainViewModel extends AndroidViewModel {
     private int mCurrentIdx;
     private Word mCurrentWord;
     private final MutableLiveData<String> mCurrentTranslation = new MutableLiveData<>();
+    private MutableLiveData<Boolean> mIsSpeechSynthesizerEnabled = new MutableLiveData<>();
+
 
     public MainViewModel(Application application) {
         super(application);
         this.mApplication = application;
         initDatabaseWithWords();
         getAllWords();
+        mIsSpeechSynthesizerEnabled.setValue(true);
     }
 
     LiveData<String> getCurrentTranslation() {
         return mCurrentTranslation;
+    }
+
+    LiveData<Boolean> isSpeechSynthesizerEnabled(){
+        return mIsSpeechSynthesizerEnabled;
     }
 
     public void nextWord() {
@@ -54,6 +61,12 @@ public class MainViewModel extends AndroidViewModel {
             mCurrentTranslation.setValue(mCurrentWord.getPlWord());
         } else {
             mCurrentTranslation.setValue(mCurrentWord.getRuWord());
+        }
+    }
+
+    public void toggleSpeechSynthesizerState(){
+        if (mIsSpeechSynthesizerEnabled.getValue() != null){
+            mIsSpeechSynthesizerEnabled.setValue(!mIsSpeechSynthesizerEnabled.getValue());
         }
     }
 

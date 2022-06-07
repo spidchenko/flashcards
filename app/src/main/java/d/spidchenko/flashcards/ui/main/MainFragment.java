@@ -1,5 +1,6 @@
 package d.spidchenko.flashcards.ui.main;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -59,7 +61,21 @@ public class MainFragment extends Fragment {
             mViewModel.decreaseRate();
             mViewModel.nextWord();
         });
-        VoiceSynthesizer voice = new VoiceSynthesizer(getActivity().getApplication());
+//        VoiceSynthesizer voice = new VoiceSynthesizer(getActivity().getApplication());
+
+        ImageButton btnTTSToggle = requireActivity().findViewById(R.id.btnTTSToggle);
+
+        btnTTSToggle.setOnClickListener(v -> mViewModel.toggleSpeechSynthesizerState());
+
+        mViewModel.isSpeechSynthesizerEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
+            Drawable icon;
+            if (isEnabled){
+                icon = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_on);
+            } else {
+                icon = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_off);
+            }
+            btnTTSToggle.setImageDrawable(icon);
+        });
     }
 
 }
