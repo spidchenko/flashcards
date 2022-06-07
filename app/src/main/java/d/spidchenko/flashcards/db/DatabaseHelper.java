@@ -3,6 +3,7 @@ package d.spidchenko.flashcards.db;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -64,9 +65,11 @@ public class DatabaseHelper extends SQLiteOpenHelper implements DatabaseHandler 
             values.put(KEY_PL_WORD, word.getPlWord());
             values.put(KEY_RU_WORD, word.getRuWord());
 
-            db.insert(TABLE_WORDS, null, values);
+            db.insertWithOnConflict(TABLE_WORDS, null, values, SQLiteDatabase.CONFLICT_ABORT);
+        } catch (SQLiteConstraintException e) {
+            Log.d(TAG, "addWord: word{" + word.getRuWord() + "} already in DB");
         } catch (Exception e) {
-            Log.d(TAG, "addWord: " + e.toString());
+            Log.d(TAG, "addWord: Exception" + e);
         }
     }
 
