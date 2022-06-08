@@ -5,7 +5,9 @@
       <map>
         <entry key="..\:/Users/User/AndroidStudioProjects/FlashCards/app/src/main/res/drawable/ic_baseline_sentiment_dissatisfied_24.xml" value="0.163" />
         <entry key="..\:/Users/User/AndroidStudioProjects/FlashCards/app/src/main/res/drawable/ic_baseline_sentiment_satisfied_24.xml" value="0.163" />
-        <entry key="..\:/Users/User/AndroidStudioProjects/FlashCards/app/src/main/res/layout/fragment_main.xml" value="0.33" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/FlashCards/app/src/main/res/drawable/ic_baseline_volume_off_24.xml" value="0.178" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/FlashCards/app/src/main/res/drawable/ic_baseline_volume_up_24.xml" value="0.178" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/FlashCards/app/src/main/res/layout/fragment_main.xml" value="0.25" />
       </map>
     </option>
   </component>

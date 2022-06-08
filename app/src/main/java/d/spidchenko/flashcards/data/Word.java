@@ -1,4 +1,4 @@
-package d.spidchenko.flashcards;
+package d.spidchenko.flashcards.data;
 
 import android.util.Log;
 

@@ -3,7 +3,7 @@ package d.spidchenko.flashcards.db;
 import java.util.ArrayList;
 import java.util.List;
 
-import d.spidchenko.flashcards.Word;
+import d.spidchenko.flashcards.data.Word;
 
 public interface DatabaseHandler {
 

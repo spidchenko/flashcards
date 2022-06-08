@@ -16,7 +16,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import d.spidchenko.flashcards.R;
-import d.spidchenko.flashcards.VoiceSynthesizer;
 
 public class MainFragment extends Fragment {
 
@@ -37,9 +36,10 @@ public class MainFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        TextView tvWord = requireActivity().findViewById(R.id.tvCurrentWord);
+        ViewModelFactory factory = new ViewModelFactory(requireActivity().getApplication());
+        mViewModel = new ViewModelProvider(this, factory).get(MainViewModel.class);
 
-        mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        TextView tvWord = requireActivity().findViewById(R.id.tvCurrentWord);
         mViewModel.getCurrentTranslation().observe(getViewLifecycleOwner(), tvWord::setText);
 
         tvWord.setOnClickListener(v -> {
@@ -69,7 +69,7 @@ public class MainFragment extends Fragment {
 
         mViewModel.isSpeechSynthesizerEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
             Drawable icon;
-            if (isEnabled){
+            if (isEnabled) {
                 icon = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_on);
             } else {
                 icon = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_off);

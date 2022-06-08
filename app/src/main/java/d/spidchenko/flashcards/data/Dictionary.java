@@ -1,4 +1,4 @@
-package d.spidchenko.flashcards;
+package d.spidchenko.flashcards.data;
 
 public class Dictionary {
     public static final String[] translations = {

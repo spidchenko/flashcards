@@ -11,7 +11,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-import d.spidchenko.flashcards.Word;
+import d.spidchenko.flashcards.data.Word;
 
 public class DatabaseHelper extends SQLiteOpenHelper implements DatabaseHandler {
 
