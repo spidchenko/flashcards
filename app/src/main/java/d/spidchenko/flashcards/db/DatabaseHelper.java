@@ -18,7 +18,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements DatabaseHandler 
     private static DatabaseHelper databaseHelper;
 
     private static final String TAG = "DatabaseHelper.LOG_TAG";
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 3;
     public static final String DB_NAME = "FlashCards";
     public static final String TABLE_WORDS = "words";
     public static final String KEY_ID = "id";
@@ -52,7 +52,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements DatabaseHandler 
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        db.execSQL("DELETE FROM " + TABLE_WORDS);
     }
 
     @Override
