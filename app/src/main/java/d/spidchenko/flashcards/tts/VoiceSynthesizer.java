@@ -9,6 +9,7 @@ import java.util.Locale;
 
 public class VoiceSynthesizer {
     private static final String TAG = "VoiceSynthesizer.LOG_TAG";
+    public static final float VOICE_SPEED = 0.7F;
     private static VoiceSynthesizer voiceSynthesizer;
     private final TextToSpeech tts;
 
@@ -34,6 +35,7 @@ public class VoiceSynthesizer {
 
     private void setup() {
         tts.setLanguage(new Locale("pl", "PL"));
+        tts.setSpeechRate(VOICE_SPEED);
         Log.d(TAG, "testSpeech: def voice:" + tts.getDefaultVoice());
         Voice currentVoice = tts.getVoice();
         Log.d(TAG, "testSpeech: Voice: name=" + currentVoice.getName() +
