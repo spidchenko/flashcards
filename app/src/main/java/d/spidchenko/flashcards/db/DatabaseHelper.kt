@@ -59,11 +59,10 @@ class DatabaseHelper private constructor(context: Context) :
         }
     }
 
-    override val allWords: ArrayList<Word>
-        get() {
-            val words = ArrayList<Word>()
+    override fun getAllWords(): List<Word>{
+            val words = mutableListOf<Word>()
             try {
-                writableDatabase.use { db ->
+                readableDatabase.use { db ->
                     val cursor: Cursor =
                         db.query(TABLE_WORDS, null, null, null, null, null, KEY_RATE)
                     if (cursor.moveToFirst()) {
@@ -86,7 +85,7 @@ class DatabaseHelper private constructor(context: Context) :
         }
 
     override fun addAllWords(words: List<Word>) {
-        words.forEach(Consumer { word: Word -> addWord(word) })
+        words.forEach { word -> this.addWord(word) }
     }
 
     companion object {
