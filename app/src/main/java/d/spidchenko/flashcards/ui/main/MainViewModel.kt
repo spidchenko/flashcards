@@ -1,55 +1,46 @@
 package d.spidchenko.flashcards.ui.main
 
 import android.util.Log
-import d.spidchenko.flashcards.data.Word.ruWord
-import d.spidchenko.flashcards.data.Word.plWord
-import d.spidchenko.flashcards.tts.VoiceSynthesizer.speak
-import d.spidchenko.flashcards.data.Word.memoryRate
-import d.spidchenko.flashcards.db.DatabaseHelper.updateWord
-import d.spidchenko.flashcards.db.DatabaseHelper.allWords
-import d.spidchenko.flashcards.db.DatabaseHelper.addWord
-import d.spidchenko.flashcards.db.DatabaseHelper.addAllWords
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import d.spidchenko.flashcards.data.Word
 import d.spidchenko.flashcards.db.DatabaseHelper
 import d.spidchenko.flashcards.tts.VoiceSynthesizer
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.LiveData
-import d.spidchenko.flashcards.data.Word
-import d.spidchenko.flashcards.ui.main.MainViewModel
-import java.util.*
+
 
 class MainViewModel(
     private val mDatabaseHelper: DatabaseHelper,
     private val mVoiceSynthesizer: VoiceSynthesizer
 ) : ViewModel() {
-    private var mWords: ArrayList<Word?>? = null
-    private var mCurrentIdx = 0
-    private var mCurrentWord: Word? = null
+    private lateinit var words: ArrayList<Word>
+    private var currentIdx = 0
+    private lateinit var currentWord: Word
     private val mCurrentTranslation = MutableLiveData<String>()
-    private val mIsSpeechSynthesizerEnabled = MutableLiveData<Boolean?>()
+    private val mIsSpeechSynthesizerEnabled = MutableLiveData<Boolean>()
     val currentTranslation: LiveData<String>
         get() = mCurrentTranslation
-    val isSpeechSynthesizerEnabled: LiveData<Boolean?>
+    val isSpeechSynthesizerEnabled: LiveData<Boolean>
         get() = mIsSpeechSynthesizerEnabled
 
     fun nextWord() {
-        if (mCurrentIdx > mWords!!.size - 1) {
-            mCurrentIdx = 0
-            mWords!!.sort(Comparator.comparingInt(Word::memoryRate))
+        if (currentIdx > words.size - 1) {
+            currentIdx = 0
+            words.sortWith(Comparator.comparingInt(Word::memoryRate))
         }
-        mCurrentWord = mWords!![mCurrentIdx++]
-        Log.d(TAG, "getNextWord: idx=$mCurrentIdx $mCurrentWord")
-        mCurrentTranslation.postValue(mCurrentWord!!.ruWord)
+        currentWord = words[currentIdx++]
+        Log.d(TAG, "getNextWord: idx=$currentIdx $currentWord")
+        mCurrentTranslation.postValue(currentWord.ruWord)
     }
 
     fun translate() {
-        if (mCurrentTranslation.value == mCurrentWord!!.ruWord) {
-            mCurrentTranslation.setValue(mCurrentWord!!.plWord)
+        if (mCurrentTranslation.value == currentWord.ruWord) {
+            mCurrentTranslation.value = currentWord.plWord
             if (java.lang.Boolean.TRUE == mIsSpeechSynthesizerEnabled.value) {
-                mVoiceSynthesizer.speak(mCurrentWord!!.plWord)
+                mVoiceSynthesizer.speak(currentWord.plWord)
             }
         } else {
-            mCurrentTranslation.setValue(mCurrentWord!!.ruWord)
+            mCurrentTranslation.setValue(currentWord.ruWord)
         }
     }
 
@@ -60,19 +51,15 @@ class MainViewModel(
     }
 
     fun increaseRate() {
-        if (mCurrentWord != null) {
-            var rate = mCurrentWord!!.memoryRate
-            mCurrentWord!!.memoryRate = ++rate
-            updateWord(mCurrentWord!!)
-        }
+        var rate = currentWord.memoryRate
+        currentWord.memoryRate = ++rate
+        updateWord(currentWord)
     }
 
     fun decreaseRate() {
-        if (mCurrentWord != null) {
-            var rate = mCurrentWord!!.memoryRate
-            mCurrentWord!!.memoryRate = --rate
-            updateWord(mCurrentWord!!)
-        }
+        var rate = currentWord.memoryRate
+        currentWord.memoryRate = --rate
+        updateWord(currentWord)
     }
 
     private fun updateWord(word: Word) {
@@ -82,21 +69,20 @@ class MainViewModel(
         }.start()
     }
 
-    private val allWords: Unit
-        private get() {
-            Thread {
-                val words: List<Word?> = mDatabaseHelper.allWords
-                mDatabaseHelper.close()
-                mWords = ArrayList(words)
-                shuffleWordsButSaveRateOrder()
-                Log.d(TAG, "getAllWords: Total words in db " + words.size)
-                nextWord()
-            }.start()
-        }
+    private fun getAllWords() {
+        Thread {
+            val words: List<Word> = mDatabaseHelper.allWords
+            mDatabaseHelper.close()
+            this.words = ArrayList(words)
+            shuffleWordsButSaveRateOrder()
+            Log.d(TAG, "getAllWords: Total words in db " + words.size)
+            nextWord()
+        }.start()
+    }
 
     private fun shuffleWordsButSaveRateOrder() {
-        Collections.shuffle(mWords)
-        mWords!!.sort(Comparator.comparingInt(Word::memoryRate))
+        words.shuffle()
+        words.sortWith(Comparator.comparingInt(Word::memoryRate))
     }
 
     private fun saveNewWord(word: Word) {
@@ -106,22 +92,22 @@ class MainViewModel(
         }.start()
     }
 
-    private fun saveAllWords(words: List<Word?>) {
+    private fun saveAllWords(words: List<Word>) {
         Thread { mDatabaseHelper.addAllWords(words) }.start()
     }
 
-    private fun initDatabaseWithWords() {
-        val words: MutableList<Word?> = ArrayList()
-        var i = 0
-        while (i < translations.length) {
-            if ("" == translations.get(i)) {
-                break
-            }
-            words.add(Word(translations.get(i), translations.get(i + 1)))
-            i += 2
-        }
-        saveAllWords(words)
-    }
+//    private fun initDatabaseWithWords() {
+//        val words: MutableList<Word> = Dictionary.
+//        var i = 0
+//        while (i < translations.length) {
+//            if ("" == translations.get(i)) {
+//                break
+//            }
+//            words.add(Word(translations.get(i), translations.get(i + 1)))
+//            i += 2
+//        }
+//        saveAllWords(words)
+//    }
 
     companion object {
         private const val TAG = "MainViewModel.LOG_TAG"
@@ -129,8 +115,8 @@ class MainViewModel(
     }
 
     init {
-        initDatabaseWithWords()
-        allWords
+//        initDatabaseWithWords()
+        getAllWords()
         mIsSpeechSynthesizerEnabled.value = true
     }
 }

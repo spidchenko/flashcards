@@ -9,9 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import d.spidchenko.flashcards.data.Word
 import java.util.function.Consumer
-import kotlin.Exception
-import kotlin.Int
-import kotlin.arrayOf
 
 class DatabaseHelper private constructor(context: Context) :
     SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION), DatabaseHandler {
@@ -25,39 +22,35 @@ class DatabaseHelper private constructor(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DELETE FROM " + TABLE_WORDS)
+        db.execSQL("DELETE FROM $TABLE_WORDS")
     }
 
-    override fun addWord(word: Word?) {
+    override fun addWord(word: Word) {
 //        Log.d(TAG, "addWord: " + word.getRuWord());
         try {
             writableDatabase.use { db ->
                 val values = ContentValues()
-                values.put(KEY_RATE, word!!.memoryRate)
+                values.put(KEY_RATE, word.memoryRate)
                 values.put(KEY_PL_WORD, word.plWord)
                 values.put(KEY_RU_WORD, word.ruWord)
                 db.insertWithOnConflict(TABLE_WORDS, null, values, SQLiteDatabase.CONFLICT_ABORT)
             }
         } catch (e: SQLiteConstraintException) {
-            Log.d(TAG, "addWord: word{" + word!!.ruWord + "} already in DB")
+            Log.d(TAG, "addWord: word{" + word.ruWord + "} already in DB")
         } catch (e: Exception) {
-            Log.d(TAG, "addWord: Exception$e")
+            Log.d(TAG, "addWord: Exception $e")
         }
     }
 
-    override fun updateWord(word: Word?) {
+    override fun updateWord(word: Word) {
         try {
             writableDatabase.use { db ->
                 val values = ContentValues()
-                values.put(KEY_RATE, word!!.memoryRate)
+                values.put(KEY_RATE, word.memoryRate)
                 values.put(KEY_RU_WORD, word.ruWord)
                 values.put(KEY_PL_WORD, word.plWord)
                 val result = db.update(
-                    TABLE_WORDS, values, KEY_ID + " =?", arrayOf(
-                        String.valueOf(
-                            word.id
-                        )
-                    )
+                    TABLE_WORDS, values, "$KEY_ID =?", arrayOf(word.id.toString())
                 )
                 Log.d(TAG, "updateWord: Number of rows affected =$result")
             }
@@ -71,8 +64,8 @@ class DatabaseHelper private constructor(context: Context) :
             val words = ArrayList<Word>()
             try {
                 writableDatabase.use { db ->
-                    val cursor: Cursor
-                    cursor = db.query(TABLE_WORDS, null, null, null, null, null, KEY_RATE)
+                    val cursor: Cursor =
+                        db.query(TABLE_WORDS, null, null, null, null, null, KEY_RATE)
                     if (cursor.moveToFirst()) {
                         do {
                             val word = Word(
@@ -92,8 +85,8 @@ class DatabaseHelper private constructor(context: Context) :
             return words
         }
 
-    override fun addAllWords(words: List<Word?>?) {
-        words!!.forEach(Consumer { word: Word? -> addWord(word) })
+    override fun addAllWords(words: List<Word>) {
+        words.forEach(Consumer { word: Word -> addWord(word) })
     }
 
     companion object {
@@ -109,12 +102,12 @@ class DatabaseHelper private constructor(context: Context) :
 
         @JvmStatic
         @Synchronized
-        fun getInstance(context: Context): DatabaseHelper? {
+        fun getInstance(context: Context): DatabaseHelper {
             if (databaseHelper == null) {
                 databaseHelper = DatabaseHelper(context.applicationContext)
                 //            Log.d(TAG, "getInstance: DBHelper");
             }
-            return databaseHelper
+            return databaseHelper as DatabaseHelper
         }
     }
 }

@@ -9,10 +9,9 @@ import d.spidchenko.flashcards.ui.main.MainViewModel
 import d.spidchenko.flashcards.MyApplication
 
 class ViewModelFactory(application: Application) : ViewModelProvider.Factory {
-    private val application: Application? = null
     private val voiceSynthesizer: VoiceSynthesizer
     private val databaseHelper: DatabaseHelper
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return MainViewModel(databaseHelper, voiceSynthesizer) as T
     }
 

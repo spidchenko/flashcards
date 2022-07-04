@@ -2,10 +2,6 @@ package d.spidchenko.flashcards.tts
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
-import d.spidchenko.flashcards.tts.VoiceSynthesizer
-import android.speech.tts.Voice
-import kotlin.jvm.Synchronized
-import android.speech.tts.TextToSpeech.OnInitListener
 import android.util.Log
 import java.util.*
 
@@ -38,13 +34,14 @@ class VoiceSynthesizer private constructor(context: Context) {
         private const val TAG = "VoiceSynthesizer.LOG_TAG"
         const val VOICE_SPEED = 0.7f
         private var voiceSynthesizer: VoiceSynthesizer? = null
+
         @JvmStatic
         @Synchronized
-        fun getInstance(context: Context): VoiceSynthesizer? {
+        fun getInstance(context: Context): VoiceSynthesizer {
             if (voiceSynthesizer == null) {
                 voiceSynthesizer = VoiceSynthesizer(context.applicationContext)
             }
-            return voiceSynthesizer
+            return voiceSynthesizer as VoiceSynthesizer
         }
     }
 

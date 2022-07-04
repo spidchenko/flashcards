@@ -19,11 +19,7 @@ class Word(val ruWord: String, val plWord: String) {
     }
 
     override fun toString(): String {
-        return "Word{" +
-                "mMemoryRate=" + memoryRate +
-                ", mRuWord='" + ruWord + '\'' +
-                ", mPlWord='" + plWord + '\'' +
-                '}'
+        return "Word{mMemoryRate=$memoryRate, mRuWord='$ruWord', mPlWord='$plWord'}"
     }
 
     companion object {
