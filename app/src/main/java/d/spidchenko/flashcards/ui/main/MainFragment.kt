@@ -1,81 +1,69 @@
-package d.spidchenko.flashcards.ui.main;
+package d.spidchenko.flashcards.ui.main
 
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.TextView;
+import d.spidchenko.flashcards.ui.main.MainViewModel
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.os.Bundle
+import d.spidchenko.flashcards.R
+import d.spidchenko.flashcards.ui.main.ViewModelFactory
+import androidx.lifecycle.ViewModelProvider
+import android.widget.TextView
+import android.widget.ImageButton
+import android.graphics.drawable.Drawable
+import android.view.View
+import android.widget.Button
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.fragment.app.Fragment
+import d.spidchenko.flashcards.ui.main.MainFragment
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-
-import d.spidchenko.flashcards.R;
-
-public class MainFragment extends Fragment {
-
-    private MainViewModel mViewModel;
-
-    public static MainFragment newInstance() {
-        return new MainFragment();
+class MainFragment : Fragment() {
+    private var mViewModel: MainViewModel? = null
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_main, container, false)
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        ViewModelFactory factory = new ViewModelFactory(requireActivity().getApplication());
-        mViewModel = new ViewModelProvider(this, factory).get(MainViewModel.class);
-
-        TextView tvWord = requireActivity().findViewById(R.id.tvCurrentWord);
-        mViewModel.getCurrentTranslation().observe(getViewLifecycleOwner(), tvWord::setText);
-
-        tvWord.setOnClickListener(v -> {
-            mViewModel.translate();
-        });
-
-        Button btnShow = requireActivity().findViewById(R.id.btnShow);
-        btnShow.setOnClickListener(v -> mViewModel.nextWord());
-
-        ImageButton btnIncreaseRate = requireActivity().findViewById(R.id.btnIncreaseRate);
-        ImageButton btnDecreaseRate = requireActivity().findViewById(R.id.btnDecreaseRate);
-
-        btnIncreaseRate.setOnClickListener(v -> {
-            mViewModel.increaseRate();
-            mViewModel.nextWord();
-        });
-
-        btnDecreaseRate.setOnClickListener(v -> {
-            mViewModel.decreaseRate();
-            mViewModel.nextWord();
-        });
-//        VoiceSynthesizer voice = new VoiceSynthesizer(getActivity().getApplication());
-
-        ImageButton btnTTSToggle = requireActivity().findViewById(R.id.btnTTSToggle);
-
-        btnTTSToggle.setOnClickListener(v -> mViewModel.toggleSpeechSynthesizerState());
-
-        mViewModel.isSpeechSynthesizerEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
-            Drawable icon;
-            if (isEnabled) {
-                icon = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_on);
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        val factory = ViewModelFactory(requireActivity().getApplication())
+        mViewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
+        val tvWord: TextView = requireActivity().findViewById(R.id.tvCurrentWord)
+        mViewModel!!.currentTranslation.observe(viewLifecycleOwner) { text: String? ->
+            tvWord.text = text
+        }
+        tvWord.setOnClickListener { v: View? -> mViewModel!!.translate() }
+        val btnShow: Button = requireActivity().findViewById(R.id.btnShow)
+        btnShow.setOnClickListener { v: View? -> mViewModel!!.nextWord() }
+        val btnIncreaseRate: ImageButton = requireActivity().findViewById(R.id.btnIncreaseRate)
+        val btnDecreaseRate: ImageButton = requireActivity().findViewById(R.id.btnDecreaseRate)
+        btnIncreaseRate.setOnClickListener { v: View? ->
+            mViewModel!!.increaseRate()
+            mViewModel!!.nextWord()
+        }
+        btnDecreaseRate.setOnClickListener { v: View? ->
+            mViewModel!!.decreaseRate()
+            mViewModel!!.nextWord()
+        }
+        //        VoiceSynthesizer voice = new VoiceSynthesizer(getActivity().getApplication());
+        val btnTTSToggle: ImageButton = requireActivity().findViewById(R.id.btnTTSToggle)
+        btnTTSToggle.setOnClickListener { v: View? -> mViewModel!!.toggleSpeechSynthesizerState() }
+        mViewModel!!.isSpeechSynthesizerEnabled.observe(viewLifecycleOwner) { isEnabled: Boolean ->
+            val icon: Drawable?
+            icon = if (isEnabled) {
+                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_on)
             } else {
-                icon = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_off);
+                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_volume_off)
             }
-            btnTTSToggle.setImageDrawable(icon);
-        });
+            btnTTSToggle.setImageDrawable(icon)
+        }
     }
 
+    companion object {
+        @JvmStatic
+        fun newInstance(): MainFragment {
+            return MainFragment()
+        }
+    }
 }

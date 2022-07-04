@@ -1,58 +1,32 @@
-package d.spidchenko.flashcards.data;
+package d.spidchenko.flashcards.data
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-
-public class Word {
-
-    public enum State {ORIGINAL, TRANSLATED}
-
-    private static final String TAG = "Word.LOG_TAG";
-    private int id;
-    private int mMemoryRate;
-    private final String mRuWord;
-    private final String mPlWord;
-
-    public Word(String mRuWord, String mPlWord) {
-        this.mRuWord = mRuWord;
-        this.mPlWord = mPlWord;
+class Word(val ruWord: String, val plWord: String) {
+    enum class State {
+        ORIGINAL, TRANSLATED
     }
 
-    public Word(int id, int mMemoryRate, String mRuWord, String mPlWord){
-        this(mRuWord, mPlWord);
-        this.mMemoryRate = mMemoryRate;
-        this.id = id;
-//        Log.d(TAG, "Word: " + this);
+    var id = 0
+        private set
+    var memoryRate = 0
+
+    constructor(id: Int, mMemoryRate: Int, mRuWord: String, mPlWord: String) : this(
+        mRuWord,
+        mPlWord
+    ) {
+        memoryRate = mMemoryRate
+        this.id = id
+        //        Log.d(TAG, "Word: " + this);
     }
 
-    public String getRuWord() {
-        return mRuWord;
-    }
-
-    public String getPlWord() {
-        return mPlWord;
-    }
-
-    public int getMemoryRate() {
-        return mMemoryRate;
-    }
-
-    public void setMemoryRate(int mMemoryRate) {
-        this.mMemoryRate = mMemoryRate;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
+    override fun toString(): String {
         return "Word{" +
-                "mMemoryRate=" + mMemoryRate +
-                ", mRuWord='" + mRuWord + '\'' +
-                ", mPlWord='" + mPlWord + '\'' +
-                '}';
+                "mMemoryRate=" + memoryRate +
+                ", mRuWord='" + ruWord + '\'' +
+                ", mPlWord='" + plWord + '\'' +
+                '}'
+    }
+
+    companion object {
+        private const val TAG = "Word.LOG_TAG"
     }
 }

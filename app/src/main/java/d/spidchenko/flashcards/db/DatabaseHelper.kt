@@ -1,121 +1,120 @@
-package d.spidchenko.flashcards.db;
+package d.spidchenko.flashcards.db
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
+import android.content.ContentValues
+import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteConstraintException
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
+import d.spidchenko.flashcards.data.Word
+import java.util.function.Consumer
+import kotlin.Exception
+import kotlin.Int
+import kotlin.arrayOf
 
-import java.util.ArrayList;
-import java.util.List;
-
-import d.spidchenko.flashcards.data.Word;
-
-public class DatabaseHelper extends SQLiteOpenHelper implements DatabaseHandler {
-
-    private static DatabaseHelper databaseHelper;
-
-    private static final String TAG = "DatabaseHelper.LOG_TAG";
-    public static final int DB_VERSION = 3;
-    public static final String DB_NAME = "FlashCards";
-    public static final String TABLE_WORDS = "words";
-    public static final String KEY_ID = "id";
-    public static final String KEY_RATE = "rate";
-    public static final String KEY_RU_WORD = "ru_word";
-    public static final String KEY_PL_WORD = "pl_word";
-
-    public static synchronized DatabaseHelper getInstance(Context context) {
-
-        if (databaseHelper == null) {
-            databaseHelper = new DatabaseHelper(context.getApplicationContext());
-//            Log.d(TAG, "getInstance: DBHelper");
-        }
-        return databaseHelper;
-    }
-
-    private DatabaseHelper(Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
-    }
-
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-
-        String createWords = "CREATE TABLE " + TABLE_WORDS + "(" +
+class DatabaseHelper private constructor(context: Context) :
+    SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION), DatabaseHandler {
+    override fun onCreate(db: SQLiteDatabase) {
+        val createWords = "CREATE TABLE " + TABLE_WORDS + "(" +
                 KEY_ID + " INTEGER PRIMARY KEY," +
                 KEY_RATE + " INTEGER, " +
                 KEY_RU_WORD + " TEXT UNIQUE," +
-                KEY_PL_WORD + " TEXT UNIQUE);";
-        db.execSQL(createWords);
+                KEY_PL_WORD + " TEXT UNIQUE);"
+        db.execSQL(createWords)
     }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DELETE FROM " + TABLE_WORDS);
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        db.execSQL("DELETE FROM " + TABLE_WORDS)
     }
 
-    @Override
-    public void addWord(Word word) {
+    override fun addWord(word: Word?) {
 //        Log.d(TAG, "addWord: " + word.getRuWord());
-        try (SQLiteDatabase db = getWritableDatabase()) {
-            ContentValues values = new ContentValues();
-
-            values.put(KEY_RATE, word.getMemoryRate());
-            values.put(KEY_PL_WORD, word.getPlWord());
-            values.put(KEY_RU_WORD, word.getRuWord());
-
-            db.insertWithOnConflict(TABLE_WORDS, null, values, SQLiteDatabase.CONFLICT_ABORT);
-        } catch (SQLiteConstraintException e) {
-            Log.d(TAG, "addWord: word{" + word.getRuWord() + "} already in DB");
-        } catch (Exception e) {
-            Log.d(TAG, "addWord: Exception" + e);
-        }
-    }
-
-    public void updateWord(Word word) {
-        try (SQLiteDatabase db = getWritableDatabase()) {
-            ContentValues values = new ContentValues();
-
-            values.put(KEY_RATE, word.getMemoryRate());
-            values.put(KEY_RU_WORD, word.getRuWord());
-            values.put(KEY_PL_WORD, word.getPlWord());
-
-            int result = db.update(TABLE_WORDS, values, KEY_ID + " =?",
-                    new String[]{String.valueOf(word.getId())});
-
-            Log.d(TAG, "updateWord: Number of rows affected =" + result);
-        } catch (Exception e) {
-            Log.d(TAG, "setRate: " + e);
-        }
-    }
-
-    @Override
-    public ArrayList<Word> getAllWords() {
-        ArrayList<Word> words = new ArrayList<>();
-
-        try (SQLiteDatabase db = getWritableDatabase()) {
-            Cursor cursor;
-            cursor = db.query(TABLE_WORDS, null, null, null, null, null, KEY_RATE);
-            if (cursor.moveToFirst()) {
-                do {
-                    Word word = new Word(
-                            cursor.getInt(0),
-                            cursor.getInt(1),
-                            cursor.getString(2),
-                            cursor.getString(3));
-                    words.add(word);
-                } while (cursor.moveToNext());
+        try {
+            writableDatabase.use { db ->
+                val values = ContentValues()
+                values.put(KEY_RATE, word!!.memoryRate)
+                values.put(KEY_PL_WORD, word.plWord)
+                values.put(KEY_RU_WORD, word.ruWord)
+                db.insertWithOnConflict(TABLE_WORDS, null, values, SQLiteDatabase.CONFLICT_ABORT)
             }
-            cursor.close();
-        } catch (Exception e) {
-            Log.d(TAG, "getAllWords: " + e);
+        } catch (e: SQLiteConstraintException) {
+            Log.d(TAG, "addWord: word{" + word!!.ruWord + "} already in DB")
+        } catch (e: Exception) {
+            Log.d(TAG, "addWord: Exception$e")
         }
-        return words;
     }
 
-    @Override
-    public void addAllWords(List<Word> words) {
-        words.forEach(this::addWord);
+    override fun updateWord(word: Word?) {
+        try {
+            writableDatabase.use { db ->
+                val values = ContentValues()
+                values.put(KEY_RATE, word!!.memoryRate)
+                values.put(KEY_RU_WORD, word.ruWord)
+                values.put(KEY_PL_WORD, word.plWord)
+                val result = db.update(
+                    TABLE_WORDS, values, KEY_ID + " =?", arrayOf(
+                        String.valueOf(
+                            word.id
+                        )
+                    )
+                )
+                Log.d(TAG, "updateWord: Number of rows affected =$result")
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "setRate: $e")
+        }
+    }
+
+    override val allWords: ArrayList<Word>
+        get() {
+            val words = ArrayList<Word>()
+            try {
+                writableDatabase.use { db ->
+                    val cursor: Cursor
+                    cursor = db.query(TABLE_WORDS, null, null, null, null, null, KEY_RATE)
+                    if (cursor.moveToFirst()) {
+                        do {
+                            val word = Word(
+                                cursor.getInt(0),
+                                cursor.getInt(1),
+                                cursor.getString(2),
+                                cursor.getString(3)
+                            )
+                            words.add(word)
+                        } while (cursor.moveToNext())
+                    }
+                    cursor.close()
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "getAllWords: $e")
+            }
+            return words
+        }
+
+    override fun addAllWords(words: List<Word?>?) {
+        words!!.forEach(Consumer { word: Word? -> addWord(word) })
+    }
+
+    companion object {
+        private var databaseHelper: DatabaseHelper? = null
+        private const val TAG = "DatabaseHelper.LOG_TAG"
+        const val DB_VERSION = 3
+        const val DB_NAME = "FlashCards"
+        const val TABLE_WORDS = "words"
+        const val KEY_ID = "id"
+        const val KEY_RATE = "rate"
+        const val KEY_RU_WORD = "ru_word"
+        const val KEY_PL_WORD = "pl_word"
+
+        @JvmStatic
+        @Synchronized
+        fun getInstance(context: Context): DatabaseHelper? {
+            if (databaseHelper == null) {
+                databaseHelper = DatabaseHelper(context.applicationContext)
+                //            Log.d(TAG, "getInstance: DBHelper");
+            }
+            return databaseHelper
+        }
     }
 }

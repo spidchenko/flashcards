@@ -1,141 +1,136 @@
-package d.spidchenko.flashcards.ui.main;
+package d.spidchenko.flashcards.ui.main
 
-import static d.spidchenko.flashcards.data.Dictionary.translations;
+import android.util.Log
+import d.spidchenko.flashcards.data.Word.ruWord
+import d.spidchenko.flashcards.data.Word.plWord
+import d.spidchenko.flashcards.tts.VoiceSynthesizer.speak
+import d.spidchenko.flashcards.data.Word.memoryRate
+import d.spidchenko.flashcards.db.DatabaseHelper.updateWord
+import d.spidchenko.flashcards.db.DatabaseHelper.allWords
+import d.spidchenko.flashcards.db.DatabaseHelper.addWord
+import d.spidchenko.flashcards.db.DatabaseHelper.addAllWords
+import d.spidchenko.flashcards.db.DatabaseHelper
+import d.spidchenko.flashcards.tts.VoiceSynthesizer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import d.spidchenko.flashcards.data.Word
+import d.spidchenko.flashcards.ui.main.MainViewModel
+import java.util.*
 
-import android.util.Log;
+class MainViewModel(
+    private val mDatabaseHelper: DatabaseHelper,
+    private val mVoiceSynthesizer: VoiceSynthesizer
+) : ViewModel() {
+    private var mWords: ArrayList<Word?>? = null
+    private var mCurrentIdx = 0
+    private var mCurrentWord: Word? = null
+    private val mCurrentTranslation = MutableLiveData<String>()
+    private val mIsSpeechSynthesizerEnabled = MutableLiveData<Boolean?>()
+    val currentTranslation: LiveData<String>
+        get() = mCurrentTranslation
+    val isSpeechSynthesizerEnabled: LiveData<Boolean?>
+        get() = mIsSpeechSynthesizerEnabled
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-
-import d.spidchenko.flashcards.data.Word;
-import d.spidchenko.flashcards.db.DatabaseHelper;
-import d.spidchenko.flashcards.tts.VoiceSynthesizer;
-
-public class MainViewModel extends ViewModel {
-
-    private static final String TAG = "MainViewModel.LOG_TAG";
-    public static final String KEY = "words";
-    private final DatabaseHelper mDatabaseHelper;
-    private final VoiceSynthesizer mVoiceSynthesizer;
-    private ArrayList<Word> mWords;
-    private int mCurrentIdx;
-    private Word mCurrentWord;
-    private final MutableLiveData<String> mCurrentTranslation = new MutableLiveData<>();
-    private MutableLiveData<Boolean> mIsSpeechSynthesizerEnabled = new MutableLiveData<>();
-
-
-    public MainViewModel(DatabaseHelper databaseHelper, VoiceSynthesizer voiceSynthesizer) {
-        mDatabaseHelper = databaseHelper;
-        mVoiceSynthesizer = voiceSynthesizer;
-        initDatabaseWithWords();
-        getAllWords();
-        mIsSpeechSynthesizerEnabled.setValue(true);
-    }
-
-    LiveData<String> getCurrentTranslation() {
-        return mCurrentTranslation;
-    }
-
-    LiveData<Boolean> isSpeechSynthesizerEnabled() {
-        return mIsSpeechSynthesizerEnabled;
-    }
-
-    public void nextWord() {
-        if (mCurrentIdx > mWords.size() - 1) {
-            mCurrentIdx = 0;
-            mWords.sort(Comparator.comparingInt(Word::getMemoryRate));
+    fun nextWord() {
+        if (mCurrentIdx > mWords!!.size - 1) {
+            mCurrentIdx = 0
+            mWords!!.sort(Comparator.comparingInt(Word::memoryRate))
         }
-        mCurrentWord = mWords.get(mCurrentIdx++);
-        Log.d(TAG, "getNextWord: idx=" + mCurrentIdx + " " + mCurrentWord);
-        mCurrentTranslation.postValue(mCurrentWord.getRuWord());
+        mCurrentWord = mWords!![mCurrentIdx++]
+        Log.d(TAG, "getNextWord: idx=$mCurrentIdx $mCurrentWord")
+        mCurrentTranslation.postValue(mCurrentWord!!.ruWord)
     }
 
-    public void translate() {
-        if (Objects.equals(mCurrentTranslation.getValue(), mCurrentWord.getRuWord())) {
-            mCurrentTranslation.setValue(mCurrentWord.getPlWord());
-            if (Boolean.TRUE.equals(mIsSpeechSynthesizerEnabled.getValue())){
-                mVoiceSynthesizer.speak(mCurrentWord.getPlWord());
+    fun translate() {
+        if (mCurrentTranslation.value == mCurrentWord!!.ruWord) {
+            mCurrentTranslation.setValue(mCurrentWord!!.plWord)
+            if (java.lang.Boolean.TRUE == mIsSpeechSynthesizerEnabled.value) {
+                mVoiceSynthesizer.speak(mCurrentWord!!.plWord)
             }
         } else {
-            mCurrentTranslation.setValue(mCurrentWord.getRuWord());
+            mCurrentTranslation.setValue(mCurrentWord!!.ruWord)
         }
     }
 
-    public void toggleSpeechSynthesizerState() {
-        if (mIsSpeechSynthesizerEnabled.getValue() != null) {
-            mIsSpeechSynthesizerEnabled.setValue(!mIsSpeechSynthesizerEnabled.getValue());
+    fun toggleSpeechSynthesizerState() {
+        if (mIsSpeechSynthesizerEnabled.value != null) {
+            mIsSpeechSynthesizerEnabled.value = !mIsSpeechSynthesizerEnabled.value!!
         }
     }
 
-    public void increaseRate() {
+    fun increaseRate() {
         if (mCurrentWord != null) {
-            int rate = mCurrentWord.getMemoryRate();
-            mCurrentWord.setMemoryRate(++rate);
-            updateWord(mCurrentWord);
+            var rate = mCurrentWord!!.memoryRate
+            mCurrentWord!!.memoryRate = ++rate
+            updateWord(mCurrentWord!!)
         }
     }
 
-    public void decreaseRate() {
+    fun decreaseRate() {
         if (mCurrentWord != null) {
-            int rate = mCurrentWord.getMemoryRate();
-            mCurrentWord.setMemoryRate(--rate);
-            updateWord(mCurrentWord);
+            var rate = mCurrentWord!!.memoryRate
+            mCurrentWord!!.memoryRate = --rate
+            updateWord(mCurrentWord!!)
         }
     }
 
-    private void updateWord(Word word) {
-        new Thread(() -> {
-            mDatabaseHelper.updateWord(word);
-            mDatabaseHelper.close();
-        }).start();
+    private fun updateWord(word: Word) {
+        Thread {
+            mDatabaseHelper.updateWord(word)
+            mDatabaseHelper.close()
+        }.start()
     }
 
-    private void getAllWords() {
-        new Thread(() -> {
-            List<Word> words = mDatabaseHelper.getAllWords();
-            mDatabaseHelper.close();
-            mWords = new ArrayList<>(words);
-            shuffleWordsButSaveRateOrder();
-            Log.d(TAG, "getAllWords: Total words in db " + words.size());
-            nextWord();
-        }).start();
+    private val allWords: Unit
+        private get() {
+            Thread {
+                val words: List<Word?> = mDatabaseHelper.allWords
+                mDatabaseHelper.close()
+                mWords = ArrayList(words)
+                shuffleWordsButSaveRateOrder()
+                Log.d(TAG, "getAllWords: Total words in db " + words.size)
+                nextWord()
+            }.start()
+        }
+
+    private fun shuffleWordsButSaveRateOrder() {
+        Collections.shuffle(mWords)
+        mWords!!.sort(Comparator.comparingInt(Word::memoryRate))
     }
 
-    private void shuffleWordsButSaveRateOrder() {
-        Collections.shuffle(mWords);
-        mWords.sort(Comparator.comparingInt(Word::getMemoryRate));
+    private fun saveNewWord(word: Word) {
+        Thread {
+            mDatabaseHelper.addWord(word)
+            Log.d(TAG, "saveNewWord: " + word.ruWord)
+        }.start()
     }
 
-    private void saveNewWord(Word word) {
-        new Thread(() -> {
-            mDatabaseHelper.addWord(word);
-            Log.d(TAG, "saveNewWord: " + word.getRuWord());
-        }).start();
+    private fun saveAllWords(words: List<Word?>) {
+        Thread { mDatabaseHelper.addAllWords(words) }.start()
     }
 
-    private void saveAllWords(List<Word> words) {
-        new Thread(() -> {
-            mDatabaseHelper.addAllWords(words);
-//            Log.d(TAG, "saveAllWords: " + words);
-        }).start();
-    }
-
-    private void initDatabaseWithWords() {
-        List<Word> words = new ArrayList<>();
-        for (int i = 0; i < translations.length; i += 2) {
-            if ("".equals(translations[i])) {
-                break;
+    private fun initDatabaseWithWords() {
+        val words: MutableList<Word?> = ArrayList()
+        var i = 0
+        while (i < translations.length) {
+            if ("" == translations.get(i)) {
+                break
             }
-            words.add(new Word(translations[i], translations[i + 1]));
+            words.add(Word(translations.get(i), translations.get(i + 1)))
+            i += 2
         }
-        saveAllWords(words);
+        saveAllWords(words)
     }
 
+    companion object {
+        private const val TAG = "MainViewModel.LOG_TAG"
+        const val KEY = "words"
+    }
+
+    init {
+        initDatabaseWithWords()
+        allWords
+        mIsSpeechSynthesizerEnabled.value = true
+    }
 }

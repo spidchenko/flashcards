@@ -1,29 +1,23 @@
-package d.spidchenko.flashcards.ui.main;
+package d.spidchenko.flashcards.ui.main
 
-import android.app.Application;
+import android.app.Application
+import androidx.lifecycle.ViewModelProvider
+import d.spidchenko.flashcards.tts.VoiceSynthesizer
+import d.spidchenko.flashcards.db.DatabaseHelper
+import androidx.lifecycle.ViewModel
+import d.spidchenko.flashcards.ui.main.MainViewModel
+import d.spidchenko.flashcards.MyApplication
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
-
-import d.spidchenko.flashcards.MyApplication;
-import d.spidchenko.flashcards.db.DatabaseHelper;
-import d.spidchenko.flashcards.tts.VoiceSynthesizer;
-
-public class ViewModelFactory implements ViewModelProvider.Factory {
-
-    private Application application;
-    private final VoiceSynthesizer voiceSynthesizer;
-    private final DatabaseHelper databaseHelper;
-
-    public ViewModelFactory(Application application) {
-        databaseHelper = ((MyApplication) application).getDatabaseHelper();
-        voiceSynthesizer = ((MyApplication) application).getVoiceSynthesizer();
+class ViewModelFactory(application: Application) : ViewModelProvider.Factory {
+    private val application: Application? = null
+    private val voiceSynthesizer: VoiceSynthesizer
+    private val databaseHelper: DatabaseHelper
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return MainViewModel(databaseHelper, voiceSynthesizer) as T
     }
 
-    @NonNull
-    @Override
-    public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        return (T) new MainViewModel(databaseHelper , voiceSynthesizer);
+    init {
+        databaseHelper = (application as MyApplication).databaseHelper
+        voiceSynthesizer = application.voiceSynthesizer
     }
 }

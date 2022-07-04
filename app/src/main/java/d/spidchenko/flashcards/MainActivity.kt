@@ -1,21 +1,19 @@
-package d.spidchenko.flashcards;
+package d.spidchenko.flashcards
 
-import androidx.appcompat.app.AppCompatActivity;
+import d.spidchenko.flashcards.ui.main.MainFragment.Companion.newInstance
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import d.spidchenko.flashcards.R
+import d.spidchenko.flashcards.ui.main.MainFragment
 
-import android.os.Bundle;
-
-import d.spidchenko.flashcards.ui.main.MainFragment;
-
-public class MainActivity extends AppCompatActivity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, MainFragment.newInstance())
-                    .commitNow();
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.container, newInstance())
+                .commitNow()
         }
     }
 }
