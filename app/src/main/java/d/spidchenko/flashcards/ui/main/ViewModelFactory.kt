@@ -1,22 +1,24 @@
 package d.spidchenko.flashcards.ui.main
 
 import android.app.Application
-import androidx.lifecycle.ViewModelProvider
-import d.spidchenko.flashcards.tts.VoiceSynthesizer
-import d.spidchenko.flashcards.db.DatabaseHelper
 import androidx.lifecycle.ViewModel
-import d.spidchenko.flashcards.ui.main.MainViewModel
+import androidx.lifecycle.ViewModelProvider
 import d.spidchenko.flashcards.MyApplication
+import d.spidchenko.flashcards.db.dao.WordDao
+import d.spidchenko.flashcards.tts.VoiceSynthesizer
 
-class ViewModelFactory(application: Application) : ViewModelProvider.Factory {
-    private val voiceSynthesizer: VoiceSynthesizer
-    private val databaseHelper: DatabaseHelper
+class ViewModelFactory(
+    private val voiceSynthesizer: VoiceSynthesizer,
+    private val wordDao: WordDao
+) : ViewModelProvider.Factory {
+
+//    private val wordDao = AppDatabase.
+
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return MainViewModel(databaseHelper, voiceSynthesizer) as T
-    }
-
-    init {
-        databaseHelper = (application as MyApplication).databaseHelper
-        voiceSynthesizer = application.voiceSynthesizer
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return MainViewModel(wordDao, voiceSynthesizer) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

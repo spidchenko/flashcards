@@ -1,6 +1,5 @@
 package d.spidchenko.flashcards.ui.main
 
-import android.app.Application
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +10,7 @@ import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import d.spidchenko.flashcards.MyApplication
 import d.spidchenko.flashcards.R
 import d.spidchenko.flashcards.ui.main.MainViewModel
 
@@ -26,7 +26,10 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val factory = ViewModelFactory(requireActivity().application)
+        val factory = ViewModelFactory(
+            (activity?.application as MyApplication).voiceSynthesizer,
+            (activity?.application as MyApplication).database.wordDao()
+        )
         mViewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
         val tvWord: TextView = view.findViewById(R.id.tvCurrentWord)
         mViewModel.currentTranslation.observe(viewLifecycleOwner) { text: String? ->

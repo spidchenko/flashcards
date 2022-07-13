@@ -4,13 +4,15 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import d.spidchenko.flashcards.data.Word
-import d.spidchenko.flashcards.db.DatabaseHelper
+import d.spidchenko.flashcards.data.Dictionary.translations
+import d.spidchenko.flashcards.db.dao.WordDao
+import d.spidchenko.flashcards.db.models.Word
 import d.spidchenko.flashcards.tts.VoiceSynthesizer
 
 
 class MainViewModel(
-    private val mDatabaseHelper: DatabaseHelper,
+    private val wordDao: WordDao,
+//    private val mDatabaseHelper: DatabaseHelper,
     private val mVoiceSynthesizer: VoiceSynthesizer
 ) : ViewModel() {
     private lateinit var words: ArrayList<Word>
@@ -64,15 +66,15 @@ class MainViewModel(
 
     private fun updateWord(word: Word) {
         Thread {
-            mDatabaseHelper.updateWord(word)
-            mDatabaseHelper.close()
+            wordDao.updateWords(word)
+//            mDatabaseHelper.close()
         }.start()
     }
 
     private fun getAllWords() {
         Thread {
-            val words: List<Word> = mDatabaseHelper.allWords
-            mDatabaseHelper.close()
+            val words: List<Word> = wordDao.getAllWords()
+//            mDatabaseHelper.close()
             this.words = ArrayList(words)
             shuffleWordsButSaveRateOrder()
             Log.d(TAG, "getAllWords: Total words in db " + words.size)
@@ -87,27 +89,27 @@ class MainViewModel(
 
     private fun saveNewWord(word: Word) {
         Thread {
-            mDatabaseHelper.addWord(word)
+//            wordDao.insertAll(word)
             Log.d(TAG, "saveNewWord: " + word.ruWord)
         }.start()
     }
 
     private fun saveAllWords(words: List<Word>) {
-        Thread { mDatabaseHelper.addAllWords(words) }.start()
+        Thread { wordDao.insertAll(words)}.start()
     }
 
-//    private fun initDatabaseWithWords() {
-//        val words: MutableList<Word> = Dictionary.
-//        var i = 0
-//        while (i < translations.length) {
-//            if ("" == translations.get(i)) {
-//                break
-//            }
-//            words.add(Word(translations.get(i), translations.get(i + 1)))
-//            i += 2
-//        }
-//        saveAllWords(words)
-//    }
+    private fun initDatabaseWithWords() {
+        val words = mutableListOf<Word>()
+        var i = 0
+        while (i < translations.size) {
+            if (translations[i].isBlank()) {
+                break
+            }
+            words.add(Word(translations[i], translations[i + 1]))
+            i += 2
+        }
+        saveAllWords(words)
+    }
 
     companion object {
         private const val TAG = "MainViewModel.LOG_TAG"
